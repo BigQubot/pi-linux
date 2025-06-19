@@ -1588,7 +1588,7 @@
 			uart4_port = <0x4>;
 			uart4_type = <0x4>;
 			sunxi,uart-fifosize = <0x100>;
-			status = "disabled";
+			status = "okay";
 			pinctrl-names = "default", "sleep";
 			pinctrl-0 = <0x31>;
 			pinctrl-1 = <0x32>;

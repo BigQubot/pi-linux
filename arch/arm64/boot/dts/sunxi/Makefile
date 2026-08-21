@@ -11,3 +11,4 @@ DTC_FLAGS ?= -a 262144
 
 subdir-$(CONFIG_BOARD_BANANAPI_M4BERRY) += overlay/bpi-m4berry
 subdir-$(CONFIG_BOARD_BANANAPI_M4ZERO) += overlay/bpi-m4zero
+subdir-$(CONFIG_BOARD_BANANAPI_CM7) += overlay/bpi-cm7

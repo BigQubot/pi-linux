@@ -938,13 +938,13 @@
 			};
 
 			uart3-pi-pins {
-				pins = "PI9", "PI10", "PI1", "PI12";
+				pins = "PI9", "PI10", "PI11", "PI12";
 				function = "uart3";
 				phandle = <0x2f>;
 			};
 
 			uart3-pi-sleep {
-				pins = "PI9", "PI10", "PI1", "PI12";
+				pins = "PI9", "PI10", "PI11", "PI12";
 				function = "gpio_in";
 				phandle = <0x30>;
 			};
@@ -1588,7 +1588,7 @@
 			uart4_port = <0x4>;
 			uart4_type = <0x4>;
 			sunxi,uart-fifosize = <0x100>;
-			status = "okay";
+			status = "disabled";
 			pinctrl-names = "default", "sleep";
 			pinctrl-0 = <0x31>;
 			pinctrl-1 = <0x32>;
@@ -1686,13 +1686,25 @@
 			resets = <0x2 0x1a>;
 			dmas = <0x35 0x2e 0x35 0x2e>;
 			dma-names = "tx", "rx";
-			status = "disabled";
+			status = "okay";
 			clock-frequency = <0x61a80>;
 			pinctrl-0 = <0x3c>;
 			pinctrl-1 = <0x3d>;
 			pinctrl-names = "default", "sleep";
 			twi_drv_used = <0x1>;
 			phandle = <0xa3>;
+
+			eeprom@56 {
+				compatible = "atmel,24c02";
+				reg = <0x56>;
+				pagesize = <0x8>;
+			};
+
+			eeprom@57 {
+				compatible = "atmel,24c02";
+				reg = <0x57>;
+				pagesize = <0x8>;
+			};
 		};
 
 		twi@5003000 {
@@ -2915,6 +2927,12 @@
 			label = "sys_led";
 			gpio = <0x23 0x2 0xc 0x1>;
 			linux,default-trigger = "heartbeat";
+		};
+
+		eth_act {
+			label = "eth_act";
+			gpio = <0x23 0x6 0x10 0x1>;
+			default-state = "off";
 		};
 	};
 

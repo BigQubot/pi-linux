@@ -531,7 +531,7 @@
 			nvmem-cell-names = "tvout";
 			device_type = "tv0";
 			pinctrl-names = "active", "sleep";
-			status = "disabled";
+			status = "okay";
 			interface = <0x1>;
 			dac_type0 = <0x0>;
 			dac_src0 = <0x0>;
@@ -1930,9 +1930,7 @@
 			clock-names = "clk_pll_audio_4x", "clk_audio", "clk_bus_audio";
 			status = "okay";
 			lineout_vol = <0x1f>;
-			pa_pin_max = <0x1>;
-			pa_pin_level_0 = <0x1>;
-			pa_pin_msleep_0 = <0x0>;
+			pa_pin_max = <0x0>;
 			tx_hub_en;
 			phandle = <0x4a>;
 		};

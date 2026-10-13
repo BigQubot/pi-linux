@@ -1804,7 +1804,8 @@ static void start_work(struct work_struct *work)
 			    ("sel=%d, output_type=%d, lcd_reg=%d,hdmi_reg=%d\n",
 			     screen_id, output_type, lcd_registered,
 			     hdmi_registered);
-			if (((disp_mode == DISP_INIT_MODE_SCREEN0)
+			if ((((disp_mode == DISP_INIT_MODE_SCREEN0) ||
+			       (disp_mode == DISP_INIT_MODE_TWO_DIFF_SCREEN_SAME_CONTENTS))
 			     && (screen_id == 0))
 			    || ((disp_mode == DISP_INIT_MODE_SCREEN1)
 				&& (screen_id == 1))) {
@@ -1846,6 +1847,15 @@ static void start_work(struct work_struct *work)
 			suspend_output_type[g_disp_drv.para.boot_info.disp] =
 			    g_disp_drv.para.boot_info.type;
 		}
+	}
+	if (g_disp_drv.disp_init.disp_mode ==
+	    DISP_INIT_MODE_TWO_DIFF_SCREEN_SAME_CONTENTS && num_screens > 1 &&
+	    g_disp_drv.disp_init.output_type[1] != DISP_OUTPUT_TYPE_NONE &&
+	    (g_disp_drv.disp_init.output_type[1] != DISP_OUTPUT_TYPE_TV ||
+	     bsp_disp_get_tv_registered()) &&
+	    bsp_disp_get_output_type(1) != g_disp_drv.disp_init.output_type[1]) {
+		if (!disp_device_set_config(&g_disp_drv.disp_init, 1))
+			suspend_output_type[1] = g_disp_drv.disp_init.output_type[1];
 	}
 }
 
@@ -2459,7 +2469,9 @@ static s32 disp_init(struct platform_device *pdev)
 	if (para->boot_info.sync == 1) {
 		__wrn("smooth display screen:%d type:%d mode:%d\n", para->boot_info.disp,
 		      para->boot_info.type, para->boot_info.mode);
-		g_disp_drv.disp_init.disp_mode = para->boot_info.disp;
+		if (g_disp_drv.disp_init.disp_mode !=
+		    DISP_INIT_MODE_TWO_DIFF_SCREEN_SAME_CONTENTS)
+			g_disp_drv.disp_init.disp_mode = para->boot_info.disp;
 		g_disp_drv.disp_init.output_type[para->boot_info.disp] =
 		    output_type;
 		g_disp_drv.disp_init.output_mode[para->boot_info.disp] =

@@ -129,7 +129,7 @@ static int c_show(struct seq_file *m, void *v)
 {
 	int i, j;
 	bool compat = personality(current->personality) == PER_LINUX32;
-#if defined(CONFIG_BOARD_BANANAPI_M4BERRY) || defined(CONFIG_BOARD_BANANAPI_M4ZERO)
+#if defined(CONFIG_BOARD_BANANAPI_M4BERRY) || defined(CONFIG_BOARD_BANANAPI_M4ZERO) || defined(CONFIG_BOARD_BANANAPI_CM7)
         int databuf[4] = {0};
         char tmpbuf[129] = {0};
 #endif
@@ -184,7 +184,7 @@ static int c_show(struct seq_file *m, void *v)
 		seq_printf(m, "CPU revision\t: %d\n\n", MIDR_REVISION(midr));
 	}
 
-#if defined(CONFIG_BOARD_BANANAPI_M4BERRY) || defined(CONFIG_BOARD_BANANAPI_M4ZERO)
+#if defined(CONFIG_BOARD_BANANAPI_M4BERRY) || defined(CONFIG_BOARD_BANANAPI_M4ZERO) || defined(CONFIG_BOARD_BANANAPI_CM7)
 	/* platform */
         sunxi_get_platform(tmpbuf, 129);
         seq_printf(m, "CPU Platform\t: %s\n", tmpbuf);

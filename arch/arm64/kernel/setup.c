@@ -56,7 +56,7 @@ static struct resource *standard_resources;
 
 phys_addr_t __fdt_pointer __initdata;
 
-#if defined(CONFIG_BOARD_BANANAPI_M4BERRY) || defined(CONFIG_BOARD_BANANAPI_M4ZERO)
+#if defined(CONFIG_BOARD_BANANAPI_M4BERRY) || defined(CONFIG_BOARD_BANANAPI_M4ZERO) || defined(CONFIG_BOARD_BANANAPI_CM7)
 const char *machine_name = "Bananapi BPI Ref.";
 EXPORT_SYMBOL(machine_name);
 
@@ -207,12 +207,14 @@ static void __init setup_machine_fdt(phys_addr_t dt_phys)
 	dump_stack_set_arch_desc("%s (DT)", name);
 
 	/* bpi */
-#if defined(CONFIG_BOARD_BANANAPI_M4BERRY) || defined(CONFIG_BOARD_BANANAPI_M4ZERO)
+#if defined(CONFIG_BOARD_BANANAPI_M4BERRY) || defined(CONFIG_BOARD_BANANAPI_M4ZERO) || defined(CONFIG_BOARD_BANANAPI_CM7)
 	machine_name = name;
 	if (!strcmp(machine_name, "Bananapi BPI-M4Berry")) {
 		system_rev = 0x0002;
 	} else if (!strcmp(machine_name, "Bananapi BPI-M4Zero")) {
 		system_rev = 0x0003;
+	} else if (!strcmp(machine_name, "Bananapi BPI-CM7")) {
+		system_rev = 0x0004;
 	}
 #endif
 }

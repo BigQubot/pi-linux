@@ -83,6 +83,12 @@ config BOARD_BANANAPI_M4ZERO
 	  This enables support for the board Bananapi M4 Zero of Sinovoip
 	  which is based on Allwinner SUN50IW9(H618) SoC.
 
+config BOARD_BANANAPI_CM7
+	bool "Bananapi CM7 Computer Module"
+	help
+	  This enables support for the board Bananapi CM7 of Sinovoip
+	  which is based on Allwinner SUN50IW9(H618) SoC.
+
 config BOARD_ORANGEPI_ZERO3
 	bool "OrangePi Zero3 Single Board Computer"
 	help

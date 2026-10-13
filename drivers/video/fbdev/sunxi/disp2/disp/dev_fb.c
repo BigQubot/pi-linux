@@ -48,12 +48,23 @@ struct fb_info_t {
 
 	int blank[3];
 	struct disp_ion_mem *mem[SUNXI_FB_MAX];
-	struct disp_layer_config config[SUNXI_FB_MAX];
+	struct disp_layer_config config[DISP_SCREEN_NUM];
 };
 
 static struct fb_info_t g_fbi;
 static phys_addr_t bootlogo_addr;
 static int bootlogo_sz;
+
+static bool fb_mode_matches_screen(enum disp_fb_mode mode, u32 screen)
+{
+	return mode == screen ||
+		(mode == FB_MODE_DUAL_DIFF_SCREEN_SAME_CONTENTS && screen < 2);
+}
+
+static u32 fb_primary_screen(enum disp_fb_mode mode)
+{
+	return mode == FB_MODE_DUAL_DIFF_SCREEN_SAME_CONTENTS ? 0 : mode;
+}
 
 #define FBHANDTOID(handle)  ((handle) - 100)
 #define FBIDTOHAND(ID)  ((ID) + 100)
@@ -577,7 +588,7 @@ static int sunxi_fb_open(struct fb_info *info, int user)
 
 	num_screens = bsp_disp_feat_get_num_screens();
 	for (sel = 0; sel < num_screens; sel++) {
-		if (sel == g_fbi.fb_mode[info->node]) {
+		if (fb_mode_matches_screen(g_fbi.fb_mode[info->node], sel)) {
 			struct disp_manager *mgr = g_disp_drv.mgr[sel];
 
 			if (mgr && mgr->device) {
@@ -610,7 +621,7 @@ static int fb_wait_for_vsync(struct fb_info *info)
 	num_screens = bsp_disp_feat_get_num_screens();
 
 	for (sel = 0; sel < num_screens; sel++) {
-		if (sel == g_fbi.fb_mode[info->node]) {
+		if (sel == fb_primary_screen(g_fbi.fb_mode[info->node])) {
 			struct disp_manager *mgr = g_disp_drv.mgr[sel];
 
 			if (!mgr || !mgr->device
@@ -652,7 +663,7 @@ static int sunxi_fb_pan_display(struct fb_var_screeninfo *var,
 	num_screens = bsp_disp_feat_get_num_screens();
 
 	for (sel = 0; sel < num_screens; sel++) {
-		if (sel == g_fbi.fb_mode[info->node]) {
+		if (fb_mode_matches_screen(g_fbi.fb_mode[info->node], sel)) {
 			u32 buffer_num = 1;
 			s32 chan = g_fbi.layer_hdl[info->node][0];
 			s32 layer_id = g_fbi.layer_hdl[info->node][1];
@@ -804,7 +815,7 @@ static int sunxi_fb_blank(int blank_mode, struct fb_info *info)
 	__inf("sunxi_fb_blank,mode:%d\n", blank_mode);
 
 	for (sel = 0; sel < num_screens; sel++) {
-		if (sel == g_fbi.fb_mode[info->node]) {
+		if (fb_mode_matches_screen(g_fbi.fb_mode[info->node], sel)) {
 			s32 chan = g_fbi.layer_hdl[info->node][0];
 			s32 layer_id = g_fbi.layer_hdl[info->node][1];
 			struct disp_layer_config config;
@@ -2064,13 +2075,17 @@ static s32 display_fb_request(u32 fb_id, struct disp_fb_create_info *fb_para)
 		goto OUT;
 
 	for (sel = 0; sel < num_screens; sel++) {
-		if (sel == fb_para->fb_mode) {
+		if (fb_mode_matches_screen(fb_para->fb_mode, sel)) {
 			u32 y_offset = 0, src_width = xres, src_height = yres;
+			u32 output_width = fb_para->output_width;
+			u32 output_height = fb_para->output_height;
+			bool primary = fb_primary_screen(fb_para->fb_mode) == sel;
 			struct disp_video_timings tt;
 			struct disp_manager *mgr = NULL;
 
 			mgr = g_disp_drv.mgr[sel];
-			if (mgr && mgr->device && mgr->device->get_timings) {
+			if (primary && mgr && mgr->device &&
+			    mgr->device->get_timings) {
 				mgr->device->get_timings(mgr->device, &tt);
 				if (tt.pixel_clk != 0)
 					g_fbi.fbinfo[fb_id]->var.pixclock =
@@ -2088,24 +2103,33 @@ static s32 display_fb_request(u32 fb_id, struct disp_fb_create_info *fb_para)
 				g_fbi.fbinfo[fb_id]->var.vsync_len =
 				    tt.ver_sync_time;
 			}
-			info->var.width =
-			    bsp_disp_get_screen_physical_width(sel);
-			info->var.height =
-			    bsp_disp_get_screen_physical_height(sel);
+			if (primary) {
+				info->var.width =
+				    bsp_disp_get_screen_physical_width(sel);
+				info->var.height =
+				    bsp_disp_get_screen_physical_height(sel);
+			} else {
+				output_width = bsp_disp_get_screen_width_from_output_type(
+					sel, g_disp_drv.disp_init.output_type[sel],
+					g_disp_drv.disp_init.output_mode[sel]);
+				output_height = bsp_disp_get_screen_height_from_output_type(
+					sel, g_disp_drv.disp_init.output_type[sel],
+					g_disp_drv.disp_init.output_mode[sel]);
+			}
 
 			memset(&config, 0, sizeof(struct disp_layer_config));
 
 			config.channel = g_fbi.layer_hdl[fb_id][0];
 			config.layer_id = g_fbi.layer_hdl[fb_id][1];
 			config.enable = 1;
-			Fb_map_kernel_logo(sel, info);
+			if (primary)
+				Fb_map_kernel_logo(sel, info);
 			if (g_disp_drv.para.boot_info.sync == 1) {
 				if ((sel == g_disp_drv.para.boot_info.disp) &&
 				    (g_disp_drv.para.boot_info.type !=
 				     DISP_OUTPUT_TYPE_NONE)) {
 					bsp_disp_get_display_size(sel,
-					      &fb_para->output_width,
-					      &fb_para->output_height);
+					      &output_width, &output_height);
 				}
 			}
 
@@ -2115,24 +2139,20 @@ static s32 display_fb_request(u32 fb_id, struct disp_fb_create_info *fb_para)
 			    (ROTATION_SW_90 == mgr->rot_sw->degree ||
 			     ROTATION_SW_270 == mgr->rot_sw->degree)) {
 				config.info.screen_win.height =
-					(fb_para->output_width == 0)
+					(output_width == 0)
 					? src_width
-					: fb_para->output_width;
+					: output_width;
 				config.info.screen_win.width =
-					(fb_para->output_height == 0)
+					(output_height == 0)
 					? src_width
-					: fb_para->output_height;
+					: output_height;
 			} else
 #endif
 			{
 				config.info.screen_win.width =
-					(0 ==
-					 fb_para->output_width) ? src_width : fb_para->
-					output_width;
+					(0 == output_width) ? src_width : output_width;
 				config.info.screen_win.height =
-					(0 ==
-					 fb_para->output_height) ? src_height : fb_para->
-					output_height;
+					(0 == output_height) ? src_height : output_height;
 			}
 
 			config.info.mode = LAYER_MODE_BUFFER;
@@ -2188,7 +2208,8 @@ static s32 display_fb_request(u32 fb_id, struct disp_fb_create_info *fb_para)
 			if (mgr && mgr->set_layer_config)
 				mgr->set_layer_config(mgr, &config, 1);
 #endif
-			memcpy(&g_fbi.config[fb_id], &config, sizeof(struct disp_layer_config));
+			memcpy(&g_fbi.config[sel], &config,
+			       sizeof(struct disp_layer_config));
 		}
 	}
 
@@ -2213,7 +2234,7 @@ static s32 display_fb_release(u32 fb_id)
 		struct fb_info *info = g_fbi.fbinfo[fb_id];
 
 		for (sel = 0; sel < num_screens; sel++) {
-			if (sel == g_fbi.fb_mode[fb_id]) {
+			if (fb_mode_matches_screen(g_fbi.fb_mode[fb_id], sel)) {
 				struct disp_manager *mgr = NULL;
 				struct disp_layer_config config;
 
@@ -2254,7 +2275,7 @@ s32 Display_set_fb_timming(u32 sel)
 
 	for (fb_id = 0; fb_id < SUNXI_FB_MAX; fb_id++) {
 		if (g_fbi.fb_enable[fb_id]) {
-			if (sel == g_fbi.fb_mode[fb_id]) {
+			if (sel == fb_primary_screen(g_fbi.fb_mode[fb_id])) {
 				struct disp_video_timings tt;
 				struct disp_manager *mgr = g_disp_drv.mgr[sel];
 
@@ -2390,6 +2411,9 @@ s32 fb_init(struct platform_device *pdev)
 		for (i = 0; i < SUNXI_FB_MAX; i++) {
 			u32 screen_id = g_disp_drv.disp_init.disp_mode;
 
+			if (screen_id == DISP_INIT_MODE_TWO_DIFF_SCREEN_SAME_CONTENTS)
+				screen_id = 0;
+
 			if (g_disp_drv.para.boot_info.sync)
 				screen_id = g_disp_drv.para.boot_info.disp;
 
@@ -2423,7 +2447,10 @@ s32 fb_init(struct platform_device *pdev)
 			    (screen_id,
 			     disp_init->output_type[screen_id],
 			     disp_init->output_mode[screen_id]);
-			fb_para.fb_mode = screen_id;
+			fb_para.fb_mode =
+				(disp_init->disp_mode ==
+				 DISP_INIT_MODE_TWO_DIFF_SCREEN_SAME_CONTENTS) ?
+				FB_MODE_DUAL_DIFF_SCREEN_SAME_CONTENTS : screen_id;
 
 #if (defined(SUPPORT_EINK) && defined(CONFIG_EINK_PANEL_USED))
 			fb_para.output_width = fb_para.width;

@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Full-width IMX415 frames use the ISP0/1 offline split/merge pair.
+ * Both connectors share that pair: capture one sensor at a time. Keep the
+ * shared settings identical so CSI overlays can be applied in either order.
+ */
+&vind0 { status = "okay"; };
+&tdm0 { work_mode = <1>; status = "okay"; };
+&isp00 { work_mode = <1>; status = "okay"; };
+&isp01 { status = "okay"; };
+&isp02 { status = "disabled"; };
+&isp03 { status = "disabled"; };
+&isp10 { status = "disabled"; };
+&isp20 { status = "disabled"; };
+&isp30 { status = "disabled"; };
+
+&scaler00 { work_mode = <1>; status = "okay"; };
+&scaler01 { status = "okay"; };
+&scaler02 { status = "disabled"; };
+&scaler03 { status = "disabled"; };
+&scaler10 { status = "disabled"; };
+&scaler11 { status = "disabled"; };
+&scaler12 { status = "disabled"; };
+&scaler13 { status = "disabled"; };
+&scaler20 { work_mode = <1>; status = "okay"; };
+&scaler21 { status = "okay"; };
+&scaler22 { status = "disabled"; };
+&scaler23 { status = "disabled"; };
+&scaler30 { status = "disabled"; };
+&scaler31 { status = "disabled"; };
+&scaler32 { status = "disabled"; };
+&scaler33 { status = "disabled"; };
+&scaler40 { status = "disabled"; };
+&scaler50 { status = "disabled"; };

@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+};
+
+/*
+ * Overlay for the Expansion V00 LT6911C HDMI receiver resources.
+ * It intentionally does not instantiate the bridge: the schematic does not
+ * state its control address and this kernel has no LT6911C V4L2 driver.
+ */
+&twi3 {
+	status = "okay";
+};
+
+&twi4 {
+	status = "okay";
+};
+
+&vind0 {
+	status = "okay";
+};
+
+&mipi0 {
+	status = "okay";
+};
+
+&mipi1 {
+	status = "okay";
+};
+
+&csi1 {
+	status = "okay";
+};

@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+};
+
+&pio {
+	twi7_pj_pins: twi7-pj-pins {
+		pins = "PJ22", "PJ23";
+		function = "twi7";
+		drive-strength = <10>;
+		bias-pull-up;
+	};
+
+	twi7_pj_sleep_pins: twi7-pj-sleep-pins {
+		pins = "PJ22", "PJ23";
+		function = "gpio_in";
+	};
+};
+
+/* PJ22/SCL and PJ23/SDA are shared with pj-uart3. */
+&twi7 {
+	clock-frequency = <400000>;
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&twi7_pj_pins>;
+	pinctrl-1 = <&twi7_pj_sleep_pins>;
+	twi-supply = <&reg_dc1sw1>; /* VCC-PJ, via RP6 */
+	status = "okay";
+};

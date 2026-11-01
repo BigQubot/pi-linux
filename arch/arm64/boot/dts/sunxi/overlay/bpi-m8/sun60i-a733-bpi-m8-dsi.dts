@@ -1,0 +1,84 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/sun4i-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+};
+
+/* HC070/JZ-B2601A070G: four-lane DSI, JD9365 panel and GT911 touch. */
+&{/} {
+	reg_dsi_lcd: regulator-dsi-lcd {
+		compatible = "regulator-fixed";
+		regulator-name = "dsi-lcd-touch-3v3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		vin-supply = <&reg_vbus_5v>;
+		gpio = <&pio PD 18 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		startup-delay-us = <10000>;
+	};
+};
+
+&panel_0 {
+	/* JD9365 requires video mode with a non-continuous DSI clock. */
+	dsi,flags = <0x401>;
+	/* PD18 powers both devices; blanking must not cut touch power. */
+	power-num = <3>;
+	power2-supply = <&reg_dsi_lcd>;
+	width-mm = <94>;
+	height-mm = <151>;
+	status = "okay";
+};
+
+&backlight0 {
+	status = "okay";
+};
+
+&pwm0_4 {
+	status = "okay";
+};
+
+&vo1 {
+	status = "okay";
+};
+
+&dlcd0 {
+	status = "okay";
+};
+
+&dsi0combophy {
+	status = "okay";
+};
+
+&dsi0 {
+	status = "okay";
+};
+
+&twi2 {
+	/* Do not combine with pe-i2c2: both use the same controller. */
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&twi2_pins_default>;
+	pinctrl-1 = <&twi2_pins_sleep>;
+	twi-supply = <&reg_bldo2>;
+	status = "okay";
+
+	touchscreen@5d {
+		compatible = "goodix,gt911";
+		reg = <0x5d>;
+		interrupt-parent = <&pio>;
+		interrupts = <PD 23 IRQ_TYPE_EDGE_FALLING>;
+		irq-gpios = <&pio PD 23 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&pio PD 20 GPIO_ACTIVE_HIGH>;
+		AVDD28-supply = <&reg_dsi_lcd>;
+		VDDIO-supply = <&reg_bldo2>;
+		touchscreen-size-x = <800>;
+		touchscreen-size-y = <1280>;
+	};
+};

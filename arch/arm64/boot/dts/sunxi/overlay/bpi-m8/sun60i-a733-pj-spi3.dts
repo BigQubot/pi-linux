@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+};
+
+&pio {
+	spi3_pj_pins: spi3-pj-pins {
+		pins = "PJ24", "PJ25", "PJ26", "PJ27";
+		function = "spi3";
+		drive-strength = <20>;
+	};
+
+	spi3_pj_sleep_pins: spi3-pj-sleep-pins {
+		pins = "PJ24", "PJ25", "PJ26", "PJ27";
+		function = "gpio_in";
+	};
+};
+
+/* PJ24-PJ27 are shared with pj-uart4; enable only one overlay. */
+&spi3 {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&spi3_pj_pins>;
+	pinctrl-1 = <&spi3_pj_sleep_pins>;
+	status = "okay";
+};

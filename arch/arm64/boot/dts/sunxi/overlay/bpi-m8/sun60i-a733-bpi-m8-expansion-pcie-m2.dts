@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/sun4i-gpio.h>
+
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+};
+
+/*
+ * Expansion V00 M.2 M-key socket, PCIe x1.
+ * Mutually exclusive with the expansion eDP overlay.
+ * Gen2 keeps the x1 link within the A733 controller and P31 capabilities
+ * while leaving Gen3 for a separate signal-integrity qualification.
+ */
+&serdes {
+	status = "okay";
+};
+
+&pcie_rc {
+	num-lanes = <1>;
+	max-link-speed = <2>;
+	power-gpios = <&pio PE 15 GPIO_ACTIVE_HIGH>;
+	reset-gpios = <&pio PE 13 GPIO_ACTIVE_HIGH>;
+	wake-gpios = <&pio PE 12 GPIO_ACTIVE_HIGH>;
+	pcie1v8-supply = <&reg_bldo1>;
+	pcie3v3-supply = <&reg_dcdc1>;
+	status = "okay";
+};

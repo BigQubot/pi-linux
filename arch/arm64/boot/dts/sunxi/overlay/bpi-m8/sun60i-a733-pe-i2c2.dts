@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+};
+
+&pio {
+	twi2_pe_pins: twi2-pe-pins {
+		pins = "PE1", "PE2";
+		function = "twi2";
+		drive-strength = <10>;
+		bias-pull-up;
+	};
+
+	twi2_pe_sleep_pins: twi2-pe-sleep-pins {
+		pins = "PE1", "PE2";
+		function = "gpio_in";
+	};
+};
+
+/* PE1/SCL and PE2/SDA. Mutually exclusive with bpi-m8-dsi touch. */
+&twi2 {
+	clock-frequency = <400000>;
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&twi2_pe_pins>;
+	pinctrl-1 = <&twi2_pe_sleep_pins>;
+	twi-supply = <&reg_bldo1>;
+	status = "okay";
+};

@@ -1,0 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+/ { compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2"; };
+&pio {
+	uart2_pb_pins: uart2-pb-pins { pins = "PB0", "PB1", "PB2", "PB3"; function = "uart2"; drive-strength = <10>; bias-pull-up; };
+};
+&uart2 { pinctrl-names = "default"; pinctrl-0 = <&uart2_pb_pins>; status = "okay"; };

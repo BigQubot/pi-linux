@@ -1,0 +1,57 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+/ { compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2"; };
+&pio {
+	i2s1_pg_mclk_pin: i2s1-pg-mclk-pin {
+		pins = "PG10";
+		function = "i2s1_mclk";
+		drive-strength = <20>;
+		bias-disable;
+	};
+
+	i2s1_pg_bclk_pin: i2s1-pg-bclk-pin {
+		pins = "PG11";
+		function = "i2s1_bclk";
+		drive-strength = <20>;
+		bias-disable;
+	};
+
+	i2s1_pg_lrck_pin: i2s1-pg-lrck-pin {
+		pins = "PG12";
+		function = "i2s1_lrck";
+		drive-strength = <20>;
+		bias-disable;
+	};
+
+	i2s1_pg_dout_pin: i2s1-pg-dout-pin {
+		pins = "PG13";
+		function = "i2s1_dout0";
+		drive-strength = <20>;
+		bias-disable;
+	};
+
+	i2s1_pg_din_pin: i2s1-pg-din-pin {
+		pins = "PG14";
+		function = "i2s1_din0";
+		drive-strength = <20>;
+		bias-disable;
+	};
+
+	i2s1_pg_sleep_pins: i2s1-pg-sleep-pins {
+		pins = "PG10", "PG11", "PG12", "PG13", "PG14";
+		function = "gpio_in";
+		bias-disable;
+	};
+};
+
+&i2s1_plat {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&i2s1_pg_mclk_pin &i2s1_pg_bclk_pin
+		     &i2s1_pg_lrck_pin &i2s1_pg_dout_pin
+		     &i2s1_pg_din_pin>;
+	pinctrl-1 = <&i2s1_pg_sleep_pins>;
+	status = "okay";
+};
+
+&i2s1_mach { status = "okay"; };

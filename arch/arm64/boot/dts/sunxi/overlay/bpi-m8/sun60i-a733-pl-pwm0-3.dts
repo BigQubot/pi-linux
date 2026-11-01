@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+};
+
+&r_pio {
+	s_pwm0_3_pl_pin: s-pwm0-3-pl-pin {
+		pins = "PL5";
+		function = "s_pwm0_3";
+		drive-strength = <10>;
+	};
+
+	s_pwm0_3_pl_sleep_pin: s-pwm0-3-pl-sleep-pin {
+		pins = "PL5";
+		function = "gpio_in";
+	};
+};
+
+&s_pwm0_3 {
+	pinctrl-names = "active", "sleep";
+	pinctrl-0 = <&s_pwm0_3_pl_pin>;
+	pinctrl-1 = <&s_pwm0_3_pl_sleep_pin>;
+	status = "okay";
+};

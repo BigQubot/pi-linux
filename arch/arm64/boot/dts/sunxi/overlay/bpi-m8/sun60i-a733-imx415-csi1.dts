@@ -1,0 +1,82 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/sun4i-gpio.h>
+
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+};
+
+#include "sun60i-a733-imx415-isp.dtsi"
+
+&soc {
+	dtbo_version = <0x00000001>;
+	dtbo {
+		compatible = "allwinner,sunxi-dtbo";
+		dtbo_type = <3>;
+	};
+};
+
+&twi3 {
+	status = "okay";
+};
+
+&mipi1 {
+	status = "okay";
+};
+
+&csi1 {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <>;
+	pinctrl-1 = <>;
+	status = "okay";
+};
+
+&sensor1 {
+	sensor1_mname = "imx415_mipi_2";
+	sensor1_twi_cci_id = <3>;
+	sensor1_twi_addr = <0x34>;
+	sensor1_mclk_id = <1>;
+	sensor1_pos = "front";
+	sensor1_isp_used = <1>;
+	sensor1_fmt = <1>;
+	sensor1_stby_mode = <0>;
+	sensor1_vflip = <0>;
+	sensor1_hflip = <0>;
+	sensor1_cameravdd_vol = <3300000>;
+	sensor1_iovdd_vol = <1800000>;
+	sensor1_avdd_vol = <3300000>;
+	sensor1_dvdd_vol = <1800000>;
+	sensor1_reset = <&pio PE 9 GPIO_ACTIVE_LOW>;
+	sensor1_pwdn = <&pio PE 8 GPIO_ACTIVE_LOW>;
+	status = "okay";
+};
+
+&vinc20 {
+	vinc8_csi_sel = <1>;
+	vinc8_mipi_sel = <1>;
+	vinc8_isp_sel = <0>;
+	vinc8_isp_tx_ch = <0>;
+	vinc8_tdm_rx_sel = <0>;
+	vinc8_rear_sensor_sel = <1>;
+	vinc8_front_sensor_sel = <1>;
+	vinc8_sensor_list = <0>;
+	work_mode = <1>;
+	status = "okay";
+};
+
+/* Separate DMA pair, sharing ISP0/1 exclusively with CSI0. */
+&vinc21 {
+	vinc9_csi_sel = <1>;
+	vinc9_mipi_sel = <1>;
+	vinc9_isp_sel = <1>;
+	vinc9_isp_tx_ch = <0>;
+	vinc9_tdm_rx_sel = <1>;
+	vinc9_rear_sensor_sel = <1>;
+	vinc9_front_sensor_sel = <1>;
+	vinc9_sensor_list = <0>;
+	work_mode = <0xff>;
+	status = "okay";
+};

@@ -1,0 +1,104 @@
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2026 The Allwinner BSP DDK Project
+
+load("//devices/allwinner:rules.bzl", "ddk_headers", "ddk_module", "declare_flags", "make_select_srcs", "make_select_copts")
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
+declare_flags(
+    local_flag_maps = [
+        ([
+            ("CONFIG_SDIO_PWRCTRL",       True),
+            ("CONFIG_PLATFORM_HI",        True),
+        ], False),
+        ([
+            ("CONFIG_VRF_DCDC_MODE",      True),
+            ("CONFIG_OOB",                False),
+            ("CONFIG_DPD",                True),
+            ("CONFIG_FORCE_DPD_CALIB",    True),
+            ("CONFIG_AMSDU_RX",           True),
+            ("CONFIG_PREALLOC_TXQ",       True),
+            ("CONFIG_SDIO_F1_FLAG",       True),
+        ], True),
+    ],
+    extern_flag_maps = [
+        ([
+            ("CONFIG_PLATFORM_ALLWINNER", "//devices/allwinner/flags:drivers/net/wireless/aic8800/aic8800_bsp/flag_platform_allwinner_settings_true"),
+            ("CONFIG_AIC_INTF_SDIO",      "//devices/allwinner/flags:drivers/net/wireless/aic8800/aic8800_bsp/flag_aic_intf_sdio_settings_true"),
+            ("CONFIG_AIC_INTF_USB",       "//devices/allwinner/flags:drivers/net/wireless/aic8800/aic8800_bsp/flag_aic_intf_usb_settings_true"),
+            ("CONFIG_USB_MSG_EP",         "//devices/allwinner/flags:drivers/net/wireless/aic8800/aic8800_bsp/flag_usb_msg_ep_settings_true"),
+        ], True),
+    ],
+)
+
+# Multi match flags
+selects.config_setting_group(
+    name = "flag_sdio_pwrctrl",
+    match_all = [
+        ":config_sdio_pwrctrl",
+        ":config_aic_intf_sdio",
+    ],
+)
+
+selects.config_setting_group(
+    name = "flag_platform_hi",
+    match_all = [
+        ":config_platform_hi",
+        ":config_aic_intf_usb",
+    ],
+)
+
+_SELECT_SRCS = {
+    ":flag_aic_intf_sdio":    ["aicsdio.c"],
+    ":flag_aic_intf_usb":     ["aicusb.c"],
+    ":flag_prealloc_txq":     ["aic_bsp_txq_prealloc.c"],
+}
+
+_SELECT_COPTS = {
+    ":flag_aic_intf_sdio":      ["-DAICWF_SDIO_SUPPORT"],
+    ":flag_aic_intf_usb":       ["-DAICWF_USB_SUPPORT"],
+    ":flag_usb_msg_ep":         ["-DCONFIG_USB_MSG_EP"],
+    ":flag_platform_allwinner": ["-DCONFIG_PLATFORM_ALLWINNER"],
+    ":flag_sdio_pwrctrl":       ["-DCONFIG_SDIO_PWRCTRL"],
+    ":flag_vrf_dcdc_mode":      ["-DCONFIG_VRF_DCDC_MODE"],
+    ":flag_oob":                ["-DCONFIG_OOB"],
+    ":flag_dpd":                ["-DDPD"],
+    ":flag_force_dpd_calib":    ["-DCONFIG_FORCE_DPD_CALIB", "-DCONFIG_DPD"],
+    ":flag_amsdu_rx":           ["-DCONFIG_AMSDU_RX"],
+    ":flag_prealloc_txq":       ["-DCONFIG_PREALLOC_TXQ"],
+    ":flag_sdio_f1_flag":       ["-DCONFIG_SDIO_F1_FLAG"],
+    ":flag_platform_hi":        ["-DCONFIG_PLATFORM_HI"],
+}
+
+ddk_headers(
+    name = "aic8800_bsp-headers",
+    hdrs = glob([
+        "*.h",
+    ]),
+    includes = [
+        ".",
+    ],
+    visibility = ["//devices/allwinner:__subpackages__"],
+)
+
+ddk_module(
+    name = "aic8800_bsp",
+    srcs = [
+        "aic_bsp_main.c",
+        "aic_bsp_driver.c",
+        "aic_bsp_8800d.c",
+        "aic_bsp_8800dc.c",
+        "aic_bsp_8800d80.c",
+        "aic_bsp_txrxif.c",
+        "aic_bsp_verify.c",
+    ] + make_select_srcs(_SELECT_SRCS),
+    out = "aic8800_bsp.ko",
+    copts = [
+        "-Wno-missing-prototypes",
+        "-Wno-missing-declarations",
+    ] + make_select_copts(_SELECT_COPTS),
+    deps = [
+        ":aic8800_bsp-headers",
+        "//devices/allwinner/bsp/drivers/misc/sunxi-rf:sunxi_rfkill",
+        "//devices/allwinner/bsp/drivers/mmc:sunxi_mmc_host",
+    ],
+)

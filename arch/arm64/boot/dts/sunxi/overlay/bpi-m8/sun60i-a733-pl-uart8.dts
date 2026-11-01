@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+};
+
+/* S-UART1 is exposed as uart8: PL12/TX and PL13/RX. */
+&uart8 {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&uart8_pins_active>;
+	pinctrl-1 = <&uart8_pins_sleep>;
+	status = "okay";
+};

@@ -1,0 +1,1 @@
+/home/qubot/BPI-M8/Tina-1.4.8/bsp/modules/gpu/img-bxm/linux/rogue_km/generated/rogue/sync_bridge/client_sync_direct_bridge.c

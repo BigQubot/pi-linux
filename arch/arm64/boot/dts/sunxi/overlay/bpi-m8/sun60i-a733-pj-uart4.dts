@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+};
+
+/* PJ24/TX, PJ25/RX, PJ26/RTS and PJ27/CTS are shared with pj-spi3. */
+&uart4 {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&uart4_pins_active>;
+	pinctrl-1 = <&uart4_pins_sleep>;
+	status = "okay";
+};

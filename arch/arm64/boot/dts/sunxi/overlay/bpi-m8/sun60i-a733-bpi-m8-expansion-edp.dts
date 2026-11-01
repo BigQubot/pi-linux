@@ -1,0 +1,121 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/sun4i-gpio.h>
+
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+
+	/* Keep root devices in an explicit fragment for U-Boot's overlay loader. */
+	fragment@99 {
+		target-path = "/";
+
+		__overlay__ {
+			edp_backlight: backlight-edp {
+				compatible = "pwm-backlight";
+				/* PE12 is BL_ENABLE; PE14 remains the brightness PWM. */
+				enable-gpios = <&pio PE 12 GPIO_ACTIVE_HIGH>;
+				/* Match the known-good AML133X30 setup on BPI-F5/T527. */
+				pwms = <&pwm1 8 5000000 0>; /* 200 Hz */
+				brightness-levels = <0 10 20 30 40 50 60 70 80 90 100>;
+				default-brightness-level = <8>;
+			};
+
+			panel_edp: panel-edp {
+				compatible = "edp-general-panel";
+				/* AML133X30 allows up to 100 ms from VDD to HPD assertion. */
+				power-delay-ms = <100>;
+				backlight-enable-before-aux;
+				backlight = <&edp_backlight>;
+				status = "okay";
+
+				panel-timing {
+					/* Known-good BPI-F5/T527 AML133X30 timing. */
+					clock-frequency = <138000000>;
+					hactive = <1920>;
+					vactive = <1080>;
+					hfront-porch = <80>;
+					hsync-len = <40>;
+					hback-porch = <40>;
+					vfront-porch = <20>;
+					vsync-len = <5>;
+					vback-porch = <6>;
+					hsync-active = <0>;
+					vsync-active = <0>;
+				};
+
+				port {
+					panel_edp_in: endpoint {
+						remote-endpoint = <&edp0_out_panel>;
+					};
+				};
+			};
+		};
+	};
+};
+
+&serdes {
+	status = "okay";
+};
+
+&pio {
+	edp_pwm_pin: edp-pwm-pin {
+		pins = "PE14";
+		function = "pwm1_8";
+		drive-strength = <10>;
+		bias-disable;
+	};
+};
+
+&pwm1_8 {
+	pinctrl-names = "default", "active";
+	pinctrl-0 = <&edp_pwm_pin>;
+	pinctrl-1 = <&edp_pwm_pin>;
+	status = "okay";
+};
+
+/* BPI-M8 routes the eDP source lanes without a ComboPHY lane permutation. */
+&combophy0 {
+	lane_invert = <1 1 1 1>;
+	lane_remap = <0 1 2 3>;
+};
+
+&vo1 {
+	status = "okay";
+};
+
+&tv1 {
+	status = "okay";
+};
+
+&edp0 {
+	/* AML133X30: eDP 1.2, HBR (2.7 Gbps), two lanes, RGB888. */
+	force_mode = "edp";
+	/* Retrain during the kernel's first atomic commit instead of inheriting
+	 * U-Boot's clocks and stream state. This makes early fbcon independent
+	 * of the bootloader handoff and avoids waiting for a display manager.
+	 */
+	allwinner,force-full-modeset;
+	/* Use the standard scrambler reset for this eDP 1.1 panel. */
+	disable-assr;
+	edp_lane_rate = <1>; /* 2.7 Gbps */
+	edp_lane_cnt = <2>;
+	edp_colordepth = <8>;
+	edp_color_fmt = <0>; /* RGB */
+	edp_ssc_en = <0>;
+	edp_ssc_mode = <0>;
+	edp_training_param_type = <1>;
+	/* AML133X30 locks the normal stream although TP2 reports only 0x55. */
+	edp_allow_eq_fallback;
+	vcc-edp-supply = <&reg_cldo5>;
+	vdd-edp-supply = <&reg_dcdc2>;
+	status = "okay";
+};
+
+&edp_out {
+	edp0_out_panel: endpoint {
+		remote-endpoint = <&panel_edp_in>;
+	};
+};

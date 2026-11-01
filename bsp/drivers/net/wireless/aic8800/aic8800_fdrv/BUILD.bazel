@@ -1,0 +1,298 @@
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2026 The Allwinner BSP DDK Project
+
+load("//devices/allwinner:rules.bzl", "ddk_headers", "ddk_module", "declare_flags", "make_select_srcs", "make_select_copts")
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
+CONFIG_RWNX_UM_HELPER_DFLT = "/dini/dini_bin/rwnx_umh.sh"
+
+declare_flags(
+    local_flag_maps = [
+        ([
+            ("CONFIG_PLATFORM_NANOPI_M4",   False),
+            ("CONFIG_PLATFORM_INGENIC_T20", False),
+            ("CONFIG_AIC_BSP_CTRL",         True),
+            ("CONFIG_ROM_PATCH_EN",         False),
+            ("CONFIG_RWNX_SOFTMAC",         False),
+            ("CONFIG_RWNX_FULLMAC",         True),
+            ("CONFIG_RWNX_FHOST",           False),
+            ("CONFIG_RWNX_SDM",             False),
+            ("CONFIG_RWNX_TL4",             False),
+            ("CONFIG_RWNX_OLD_IPC",         False),
+            ("CONFIG_RWNX_P2P_DEBUGFS",     False),
+            ("CONFIG_RWNX_SPLIT_TX_BUF",    False),
+            ("CONFIG_RWNX_AMSDUS_TX",       False),
+            ("CONFIG_RWNX_BFMER",           False),
+            ("CONFIG_RX_REORDER",           True),
+            ("CONFIG_ARP_OFFLOAD",          True),
+            ("CONFIG_RADAR_OR_IR_DETECT",   False),
+            ("CONFIG_DOWNLOAD_FW",          True),
+            ("CONFIG_RFTEST",               True),
+            ("CONFIG_GKI_OPT_FEATURES",     True),
+            ("CONFIG_WPA3_FOR_OLD_KERNEL",  False),
+            ("CONFIG_SCHED_SCAN",           False),
+            ("CONFIG_RX_NETIF_RECV_SKB",    True),
+            ("CONFIG_OOB",                  False),
+            ("CONFIG_DPD",                  True),
+            ("CONFIG_FORCE_DPD_CALIB",      True),
+            ("CONFIG_FILTER_TCP_ACK",       True),
+            ("CONFIG_MCC",                  True),
+            ("CONFIG_ONE_TXQ",              False),
+            ("CONFIG_PREALLOC_TXQ",         True),
+            ("CONFIG_PREALLOC_STA_TABLE",   False),
+            ("CONFIG_APF",                  True),
+            ("CONFIG_PREALLOC_RX_SKB",      False),
+            ("CONFIG_AICWF_LATENCY_MODE",   False),
+            ("CONFIG_RWNX_MUMIMO_TX",       False),
+            ("CONFIG_RWNX_RADAR",           True),
+            ("CONFIG_RWNX_BCMC",            True),
+            ("CONFIG_RWNX_MON_DATA",        True),
+            ("CONFIG_RWNX_SW_PROFILING",    False),
+            ("CONFIG_RWNX_DBG",             True),
+            ("CONFIG_RADAR_DETECT",         False),
+        ], True),
+        ([
+            ("CONFIG_SDIO_PWRCTRL",         True),
+            ("CONFIG_USB_BT",               True),
+            ("CONFIG_PLATFORM_HI",          True),
+            ("CONFIG_FOR_IPCAM",            True),
+            ("CONFIG_ALIGN_8BYTES",         True),
+            ("CONFIG_USB_ALIGN_DATA",       True),
+            ("CONFIG_USB_MSG_OUT_EP",       True),
+            ("CONFIG_USB_MSG_IN_EP",        True),
+            ("CONFIG_TXRX_THREAD_PRIO",     True),
+        ], False),
+    ],
+    extern_flag_maps = [
+        ([
+            ("CONFIG_PLATFORM_ALLWINNER",   "//devices/allwinner/flags:drivers/net/wireless/aic8800/aic8800_fdrv/flag_platform_allwinner_settings_true"),
+            ("CONFIG_SDIO_SUPPORT",         "//devices/allwinner/flags:drivers/net/wireless/aic8800/aic8800_fdrv/flag_aic_intf_sdio_settings_true"),
+            ("CONFIG_USB_SUPPORT",          "//devices/allwinner/flags:drivers/net/wireless/aic8800/aic8800_fdrv/flag_aic_intf_usb_settings_true"),
+            ("CONFIG_PCIE_SUPPORT",         "//devices/allwinner/flags:drivers/net/wireless/aic8800/aic8800_fdrv/flag_aic_intf_pcie_settings_true"),
+            ("CONFIG_NL80211_TESTMODE",     "//devices/allwinner/flags:drivers/net/wireless/aic8800/aic8800_fdrv/flag_nl80211_testmode_settings_true"),
+            ("CONFIG_DEBUG_FS",             "//devices/allwinner/flags:drivers/net/wireless/aic8800/aic8800_fdrv/flag_debug_fs_settings_true"),
+            ("CONFIG_AW_KERNEL_AOSP",       "//devices/allwinner/flags:drivers/net/wireless/aic8800/aic8800_fdrv/flag_aw_kernel_aosp_settings_true"),
+        ], True),
+    ],
+)
+
+# Multi match flags
+selects.config_setting_group(
+    name = "flag_sdio_pwrctrl",
+    match_all = [
+        ":config_sdio_pwrctrl",
+        ":config_sdio_support",
+    ],
+)
+
+selects.config_setting_group(
+    name = "config_not_usb_support",
+    match_any = [
+        ":config_sdio_support",
+        ":config_pcie_support",
+    ],
+)
+
+selects.config_setting_group(
+    name = "flag_for_ipcam",
+    match_all = [
+        ":config_for_ipcam",
+        ":config_not_usb_support",
+    ],
+)
+
+selects.config_setting_group(
+    name = "flag_usb_bt",
+    match_any = [
+        ":config_usb_bt",
+        ":config_usb_support",
+    ],
+)
+
+selects.config_setting_group(
+    name = "flag_align_8bytes",
+    match_all = [
+        ":config_align_8bytes",
+        ":config_usb_support",
+    ],
+)
+
+selects.config_setting_group(
+    name = "flag_usb_align_data",
+    match_all = [
+        ":config_usb_align_data",
+        ":config_usb_support",
+    ],
+)
+
+selects.config_setting_group(
+    name = "flag_usb_msg_out_ep",
+    match_all = [
+        ":config_usb_msg_out_ep",
+        ":config_usb_support",
+    ],
+)
+
+selects.config_setting_group(
+    name = "flag_usb_msg_in_ep",
+    match_all = [
+        ":config_usb_msg_in_ep",
+        ":config_usb_support",
+    ],
+)
+
+selects.config_setting_group(
+    name = "flag_platform_hi",
+    match_all = [
+        ":config_platform_hi",
+        ":config_usb_support",
+    ],
+)
+
+selects.config_setting_group(
+    name = "flag_txrx_thread_prio",
+    match_all = [
+        ":config_txrx_thread_prio",
+        ":config_usb_support",
+    ],
+)
+
+selects.config_setting_group(
+    name = "flag_rwnx_split_tx_buf_and_amsdus_tx",
+    match_all = [
+        ":config_rwnx_split_tx_buf",
+        ":config_rwnx_amsdus_tx",
+    ],
+)
+
+_SELECT_SRCS = {
+    ":flag_rwnx_radar":           ["rwnx_radar.c"],
+    ":flag_debug_fs":             ["rwnx_debugfs.c", "rwnx_fw_trace.c"],
+    ":flag_nl80211_testmode":     ["rwnx_testmode.c"],
+    ":flag_rwnx_bfmer":           ["rwnx_bfmer.c"],
+    ":flag_rwnx_mumimo_tx":       ["rwnx_mu_group.c"],
+    ":flag_sdio_support":         ["sdio_host.c", "aicwf_txrxif.c", "aicwf_sdio.c"],
+    ":flag_filter_tcp_ack":       ["aicwf_tcp_ack.c"],
+    ":flag_prealloc_rx_skb":      ["aicwf_rx_prealloc.c"],
+    ":flag_usb_support":          ["usb_host.c", "aicwf_txrxif.c", "aicwf_usb.c"],
+    ":flag_pcie_support":         ["rwnx_pci.c"],
+}
+
+_SELECT_COPTS = {
+    ":flag_debug_fs":                      ["-DCONFIG_RWNX_DEBUGFS", "-DCONFIG_RWNX_UM_HELPER_DFLT=" + "\"" +  CONFIG_RWNX_UM_HELPER_DFLT + "\""],
+    ":flag_rwnx_p2p_debugfs":              ["-DCONFIG_RWNX_P2P_DEBUGFS"],
+    ":flag_gki_opt_features":              ["-DCONFIG_GKI_OPT_FEATURES"],
+    ":flag_platform_hi":                   ["-DANDROID_PLATFORM", "-DCONFIG_PLATFORM_HI"],
+    ":flag_sdio_pwrctrl":                  ["-DCONFIG_SDIO_PWRCTRL"],
+    ":flag_rwnx_sdm":                      ["-DCONFIG_RWNX_SDM"],
+    ":flag_rwnx_tl4":                      ["-DCONFIG_RWNX_TL4"],
+    ":flag_rwnx_old_ipc":                  ["-DCONFIG_RWNX_OLD_IPC"],
+    ":flag_platform_nanopi_m4":            ["-DCONFIG_NANOPI_M4", "-DCONFIG_COEX"],
+    ":flag_platform_ingenic_t20":          ["-DCONFIG_INGENIC_T20"],
+    ":flag_platform_allwinner":            ["-DCONFIG_PLATFORM_ALLWINNER", "-DCONFIG_COEX"],
+    ":flag_rom_patch_en":                  ["-DCONFIG_ROM_PATCH_EN"],
+    ":flag_aw_kernel_aosp":                ["-DKERNEL_AOSP"],
+    ":flag_rwnx_radar":                    ["-DCONFIG_RWNX_RADAR"],
+    ":flag_rwnx_mon_data":                 ["-DCONFIG_RWNX_MON_DATA"],
+    ":flag_rwnx_bfmer":                    ["-DCONFIG_RWNX_BFMER"],
+    ":flag_rwnx_split_tx_buf":             ["-DCONFIG_RWNX_SPLIT_TX_BUF"],
+    ":flag_rwnx_split_tx_buf_and_amsdus_tx": ["-DCONFIG_RWNX_AMSDUS_TX"],
+    ":flag_rwnx_dbg":                      ["-DCONFIG_RWNX_DBG"],
+    ":flag_rwnx_sw_profiling":             ["-DCONFIG_RWNX_SW_PROFILING"],
+    ":flag_rftest":                        ["-DCONFIG_RFTEST"],
+    ":flag_wpa3_for_old_kernel":           ["-DCONFIG_WPA3_FOR_OLD_KERNEL"],
+    ":flag_sched_scan":                    ["-DCONFIG_SCHED_SCAN"],
+    ":flag_rx_netif_recv_skb":             ["-DCONFIG_RX_NETIF_RECV_SKB"],
+    ":flag_oob":                           ["-DCONFIG_OOB"],
+    ":flag_aicwf_latency_mode":            ["-DAICWF_LATENCY_MODE"],
+    ":flag_dpd":                           ["-DCONFIG_DPD"],
+    ":flag_force_dpd_calib":               ["-DCONFIG_FORCE_DPD_CALIB"],
+    ":flag_filter_tcp_ack":                ["-DCONFIG_FILTER_TCP_ACK"],
+    ":flag_mcc":                           ["-DCONFIG_MCC"],
+    ":flag_one_txq":                       ["-DCONFIG_ONE_TXQ"],
+    ":flag_prealloc_txq":                  ["-DCONFIG_PREALLOC_TXQ"],
+    ":flag_prealloc_sta_table":            ["-DCONFIG_PREALLOC_STA_TABLE"],
+    ":flag_apf":                           ["-DCONFIG_APF"],
+    ":flag_prealloc_rx_skb":               ["-DCONFIG_PREALLOC_RX_SKB"],
+    ":flag_for_ipcam":                     ["-DCONFIG_FOR_IPCAM"],
+    ":flag_aic_bsp_ctrl":                  ["-DAICWF_BSP_CTRL"],
+    ":flag_sdio_support":                  ["-DAICWF_SDIO_SUPPORT"],
+    ":flag_usb_support":                   ["-DAICWF_USB_SUPPORT"],
+    ":flag_pcie_support":                  ["-DAICWF_PCIE_SUPPORT"],
+    ":flag_rwnx_mumimo_tx":                (["-DCONFIG_RWNX_MUMIMO_TX", "-DCONFIG_USER_MAX=2"], ["-DCONFIG_USER_MAX=1"]),
+    ":flag_rwnx_bcmc":                     (["-DNX_TXQ_CNT=5"], ["-DNX_TXQ_CNT=4"]),
+    ":flag_rx_reorder":                    ["-DAICWF_RX_REORDER"],
+    ":flag_arp_offload":                   ["-DAICWF_ARP_OFFLOAD"],
+    ":flag_radar_detect":                  ["-DRADAR_OR_IR_DETECT"],
+    ":flag_download_fw":                   ["-DCONFIG_DOWNLOAD_FW"],
+    ":flag_usb_bt":                        ["-DCONFIG_USB_BT"],
+    ":flag_align_8bytes":                  ["-DCONFIG_ALIGN_8BYTES"],
+    ":flag_usb_msg_out_ep":                ["-DCONFIG_USB_MSG_OUT_EP"],
+    ":flag_usb_msg_in_ep":                 ["-DCONFIG_USB_MSG_IN_EP"],
+    ":flag_usb_align_data":                ["-DCONFIG_USB_ALIGN_DATA"],
+    ":flag_txrx_thread_prio":              ["-DCONFIG_TXRX_THREAD_PRIO"],
+}
+
+ddk_headers(
+    name = "aic8800_fdrv-headers",
+    hdrs = glob([
+        "*.h",
+    ]),
+    includes = [
+        ".",
+    ],
+    visibility = ["//visibility:private"],
+)
+
+ddk_module(
+    name = "aic8800_fdrv",
+    srcs = [
+        "rwnx_wakelock.c",
+        "rwnx_gki.c",
+        "rwnx_msg_tx.c",
+        "rwnx_msg_rx.c",
+        "rwnx_utils.c",
+        "rwnx_cmds.c",
+        "rwnx_irqs.c",
+        "rwnx_cfgfile.c",
+        "rwnx_strs.c",
+        "rwnx_rx.c",
+        "rwnx_tx.c",
+        "rwnx_txq.c",
+        "rwnx_main.c",
+        "rwnx_mod_params.c",
+        "rwnx_mesh.c",
+        "rwnx_platform.c",
+        "rwnx_dini.c",
+        "rwnx_v7.c",
+        "ipc_host.c",
+        "rwnx_tdls.c",
+        "aic_vendor.c",
+        "aicwf_nan.c",
+        "aicwf_8800dc.c",
+        "aicwf_8800d80.c",
+    ] + make_select_srcs(_SELECT_SRCS),
+    out = "aic8800_fdrv.ko",
+    copts = [
+        "-Wno-implicit-fallthrough",
+        "-Wno-frame-larger-than",
+        "-Wno-missing-prototypes",
+        "-Wno-missing-declarations",
+        "-Wno-attribute-warning",
+        "-DNX_VIRT_DEV_MAX=4",
+        "-DNX_REMOTE_STA_MAX_FOR_OLD_IC=10",
+        "-DNX_REMOTE_STA_MAX=32",
+        "-DNX_MU_GROUP_MAX=62",
+        "-DNX_TXDESC_CNT=64",
+        "-DNX_TX_MAX_RATES=4",
+        "-DNX_CHAN_CTXT_CNT=3",
+        "-DCONFIG_RWNX_FULLMAC",
+    ] + make_select_copts(_SELECT_COPTS),
+    deps = [
+        ":aic8800_fdrv-headers",
+        "//devices/allwinner/bsp/drivers/net/wireless/aic8800/aic8800_bsp:aic8800_bsp-headers",
+        "//devices/allwinner/bsp/drivers/net/wireless/aic8800/aic8800_bsp:aic8800_bsp",
+        "//devices/allwinner/bsp/drivers/misc/sunxi-rf:sunxi_rfkill",
+        "//devices/allwinner/bsp/drivers/misc/sunxi-addr:sunxi_addr",
+    ],
+)

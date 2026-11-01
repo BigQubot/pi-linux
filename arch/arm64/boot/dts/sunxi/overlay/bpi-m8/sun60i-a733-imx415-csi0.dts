@@ -1,0 +1,79 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/sun4i-gpio.h>
+
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+};
+
+#include "sun60i-a733-imx415-isp.dtsi"
+
+&soc {
+	dtbo_version = <0x00000001>;
+	dtbo {
+		compatible = "allwinner,sunxi-dtbo";
+		dtbo_type = <3>;
+	};
+};
+
+&twi4 {
+	status = "okay";
+};
+
+&mipi0 {
+	status = "okay";
+};
+
+&csi0 {
+	status = "okay";
+};
+
+&sensor0 {
+	sensor0_mname = "imx415_mipi";
+	sensor0_twi_cci_id = <4>;
+	sensor0_twi_addr = <0x34>;
+	sensor0_mclk_id = <0>;
+	sensor0_pos = "rear";
+	sensor0_isp_used = <1>;
+	sensor0_fmt = <1>;
+	sensor0_stby_mode = <0>;
+	sensor0_vflip = <0>;
+	sensor0_hflip = <0>;
+	sensor0_cameravdd_vol = <3300000>;
+	sensor0_iovdd_vol = <1800000>;
+	sensor0_avdd_vol = <3300000>;
+	sensor0_dvdd_vol = <1800000>;
+	sensor0_reset = <&pio PE 7 GPIO_ACTIVE_LOW>;
+	sensor0_pwdn = <&pio PE 6 GPIO_ACTIVE_LOW>;
+	status = "okay";
+};
+
+&vinc00 {
+	vinc0_csi_sel = <0>;
+	vinc0_mipi_sel = <0>;
+	vinc0_isp_sel = <0>;
+	vinc0_isp_tx_ch = <0>;
+	vinc0_tdm_rx_sel = <0>;
+	vinc0_rear_sensor_sel = <0>;
+	vinc0_front_sensor_sel = <0>;
+	vinc0_sensor_list = <0>;
+	work_mode = <1>;
+	status = "okay";
+};
+
+/* Right half; userspace enables DMA merge on this VIN media entity. */
+&vinc01 {
+	vinc1_csi_sel = <0>;
+	vinc1_mipi_sel = <0>;
+	vinc1_isp_sel = <1>;
+	vinc1_isp_tx_ch = <0>;
+	vinc1_tdm_rx_sel = <1>;
+	vinc1_rear_sensor_sel = <0>;
+	vinc1_front_sensor_sel = <0>;
+	vinc1_sensor_list = <0>;
+	work_mode = <0xff>;
+	status = "okay";
+};

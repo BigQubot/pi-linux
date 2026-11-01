@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "bananapi,bananapi-m8", "allwinner,sun60iw2";
+};
+
+&pio {
+	uart3_pj_pins: uart3-pj-pins {
+		pins = "PJ22", "PJ23";
+		function = "uart3";
+		drive-strength = <10>;
+		bias-pull-up;
+	};
+
+	uart3_pj_sleep_pins: uart3-pj-sleep-pins {
+		pins = "PJ22", "PJ23";
+		function = "gpio_in";
+	};
+};
+
+/* PJ22/TX and PJ23/RX are shared with pj-i2c7; enable only one overlay. */
+&uart3 {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&uart3_pj_pins>;
+	pinctrl-1 = <&uart3_pj_sleep_pins>;
+	status = "okay";
+};
